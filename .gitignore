@@ -1,0 +1,15 @@
+
+*.orig
+__debug_bin
+.vscode
+CMakeCache.txt
+Makefile
+.idea
+cert.*
+*.conf
+*.cmake
+*.log
+*.a
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
