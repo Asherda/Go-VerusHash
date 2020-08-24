@@ -21,7 +21,7 @@ stages:
   - monitor
 
 before_script:
-  - apk update && apk add make git gcc musl-dev curl bash build-base
+  - apk update && apk add cmake make git gcc musl-dev curl bash build-base
 
 # ************************************************************************/
 # BUILD
@@ -39,7 +39,7 @@ before_script:
 build:build-linux:
   stage: build
   script:
-    - make
+    - cmake . && make
   artifacts:
     paths:
     - ./lightwalletd
