@@ -21,7 +21,7 @@ stages:
   - monitor
 
 before_script:
-  - apk update && apk add cmake make git gcc musl-dev curl bash build-base boost
+  - apk update && apk add cmake make git gcc musl-dev curl bash build-base libboost-all-dev
 
 # ************************************************************************/
 # BUILD
