@@ -21,7 +21,7 @@ stages:
   - monitor
 
 before_script:
-  - apk update && set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config") && apk add automake autoconf cmake make git gcc musl-dev curl bash build-base boost-dev
+  - apk update && set\(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config") && apk add automake autoconf cmake make git gcc musl-dev curl bash build-base boost-dev
 
 # ************************************************************************/
 # BUILD
