@@ -12,8 +12,7 @@
  #  IMPORTANT NOTE: any job with preceeding '.'' is ignored in pipeline 
  # ************************************************************************/
  
-image: golang:1.13-alpine
-  
+image: webhippie/golang:1.13-alpine
 stages:
   - build
   - test
