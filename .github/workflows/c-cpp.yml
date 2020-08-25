@@ -19,5 +19,3 @@ jobs:
       run: cmake .
     - name: make
       run: make
-    - name: make distcheck
-      run: make distcheck
