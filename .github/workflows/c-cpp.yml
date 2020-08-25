@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: get sodium and boost
+    - name: sodium-boost
       run: sudo apt-get update && sudo apt-get install -yq libsodium-dev libboost-all-dev
     - name: cmake
       run: cmake .
