@@ -18,7 +18,8 @@ void Verushash::initialize() {
     {
         CVerusHash::init();
         CVerusHashV2::init();
-        sodium_init();
+        if (sodium_init() == -1) {
+        return 1;
     }
     initialized = true;
 }
