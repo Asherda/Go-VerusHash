@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: boost
-      run: sudo apt-get update && sudo apt-get install -yq libboost-all-dev1.65
+      run: sudo apt-get update && sudo apt-get install -yq libboost-all-dev
     - name: cmake
       run: cmake .
     - name: make
