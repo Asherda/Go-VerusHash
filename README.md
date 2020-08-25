@@ -3,6 +3,7 @@ The Go-verushash implementation is experimental software. Use it at your own ris
 This is preliminary work and subject to change.
 
 Copyright 2020 VerusCoin Developers
+
 ---
 
 # Overview
