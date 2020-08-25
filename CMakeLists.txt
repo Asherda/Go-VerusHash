@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(verushash)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") # -Wall
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-unused-result") # -Wall
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(verushash STATIC
         src/haraka.c
