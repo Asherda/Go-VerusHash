@@ -4,7 +4,9 @@
 
 #include <stdint.h>
 #include <vector>
+#include <csignal>
 #include <sodium.h>
+#include <iostream>
 #include "include/verus_hash.h"
 #include "solutiondata.h"
 
@@ -18,7 +20,15 @@ void Verushash::initialize() {
     {
         CVerusHash::init();
         CVerusHashV2::init();
-        sodium_init();
+        if (sodium_init() == -1) {
+            // try again
+            if (sodium_init() == -1) {
+                // failed twice, give up
+                // complain first
+                cout("verushash: unable to load sodium_init(), failed to intialize")
+                raise(SIGINT);
+            }
+       	}
     }
     initialized = true;
 }
