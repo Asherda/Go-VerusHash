@@ -25,7 +25,7 @@ void Verushash::initialize() {
             if (sodium_init() == -1) {
                 // failed twice, give up
                 // complain first
-                std::cout("verushash: unable to load sodium_init(), failed to intialize")
+                cout << "verushash: unable to load sodium_init(), failed to intialize" << endl;
                 raise(SIGINT);
             }
        	}
