@@ -1,5 +1,5 @@
 /* File : verushash.i */
-%module verushash
+%module VH
 %include "std_string.i"
 %include "carrays.i"
 %include "cdata.i"
@@ -8,7 +8,7 @@
 %}
 
 %insert(cgo_comment_typedefs) %{
-#cgo LDFLAGS: -L${SRCDIR}/build  -l:libverushash.a -lsodium
+#cgo LDFLAGS: -L${SRCDIR}/build -l:libverushash.a -lsodium
 %}
 
 
