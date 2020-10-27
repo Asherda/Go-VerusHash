@@ -296,7 +296,7 @@ public:
     int nType;
     int nVersion;
 
-    CVerusHashV2bWriter(int nTypeIn, int nVersionIn, int solutionVersion=SOLUTION_VERUSHHASH_V2, uint64_t keysize=VERUSKEYSIZE) : 
+    CVerusHashV2bWriter(int nTypeIn, int nVersionIn, int solutionVersion=SOLUTION_VERUSHHASH_V2, uint64_t keysize=VERUSKEYSIZE) :
         nType(nTypeIn), nVersion(nVersionIn), state(solutionVersion) {}
 
     void Reset() { state.Reset(); }
@@ -336,9 +336,9 @@ public:
     int nType;
     int nVersion;
 
-    CBLAKE2bWriter(int nTypeIn, 
+    CBLAKE2bWriter(int nTypeIn,
                    int nVersionIn,
-                   const unsigned char *personal=BLAKE2Bpersonal) : 
+                   const unsigned char *personal=BLAKE2Bpersonal) :
                    nType(nTypeIn), nVersion(nVersionIn)
     {
         if (crypto_generichash_blake2b_init_salt_personal(
