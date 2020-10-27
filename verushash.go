@@ -1,4 +1,4 @@
-package verushash
+package go_verushash
 
 import (
 	"github.com/asherda/go-verushash/verushash"
