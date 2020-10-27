@@ -4,19 +4,15 @@ project(verushash)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") # -Wall
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(verushash STATIC
-        src/haraka.c
-        src/haraka_portable.c
-        src/uint256.cpp
-        src/utilstrencodings.cpp
-        src/verus_hash.cpp
-        src/verus_clhash.cpp
-        src/verus_clhash_portable.cpp
-        src/ripemd160.cpp
-        src/sha256.cpp
-        compat/glibc_compat.cpp
-        compat/glibc_sanity.cpp
-        compat/glibcxx_sanity.cpp
-        compat/strnlen.cpp
+        crypto/haraka.c
+        crypto/haraka_portable.c
+        crypto/uint256.cpp
+        crypto/utilstrencodings.cpp
+        crypto/verus_hash.cpp
+        crypto/verus_clhash.cpp
+        crypto/verus_clhash_portable.cpp
+        crypto/ripemd160.cpp
+        crypto/sha256.cpp
         support/cleanse.cpp
         blockhash.cpp
         )
@@ -33,9 +29,9 @@ if(APPLE)
    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/compat)
 endif(APPLE)
 
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/verus_hash.cpp PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/verus_clhash.cpp PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/haraka.c PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/crypto/verus_hash.cpp PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/crypto/verus_clhash.cpp PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/crypto/haraka.c PROPERTIES COMPILE_FLAGS "-m64 -mpclmul -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -maes -g -fomit-frame-pointer")
 
 # Common
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)

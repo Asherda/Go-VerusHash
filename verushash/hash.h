@@ -6,11 +6,11 @@
 #ifndef BITCOIN_HASH_H
 #define BITCOIN_HASH_H
 
-#include "include/ripemd160.h"
-#include "include/sha256.h"
-#include "include/verus_hash.h"
-#include "include/uint256.h"
-#include <sodium.h>
+#include "crypto/ripemd160.h"
+#include "crypto/sha256.h"
+#include "crypto/verus_hash.h"
+#include "crypto/uint256.h"
+#include "crypto/sodium.h"
 #include "prevector.h"
 #include "serialize.h"
 #include <vector>

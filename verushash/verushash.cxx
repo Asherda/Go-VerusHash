@@ -6,7 +6,8 @@
 #include <vector>
 #include <csignal>
 #include <sodium.h>
-#include "include/verus_hash.h"
+#include <iostream>
+#include "crypto/verus_hash.h"
 #include "solutiondata.h"
 
 #include <sstream>
@@ -24,6 +25,7 @@ void Verushash::initialize() {
             if (sodium_init() == -1) {
                 // failed twice, give up
                 // complain first
+                //cout("verushash: unable to load sodium_init(), failed to intialize")
                 raise(SIGINT);
             }
        	}

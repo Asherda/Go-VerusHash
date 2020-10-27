@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "include/utilstrencodings.h"
+#include "crypto/utilstrencodings.h"
 #include "solutiondata.h"
 
 CActivationHeight CConstVerusSolutionVector::activationHeight;

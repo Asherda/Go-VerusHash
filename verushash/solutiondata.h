@@ -5,11 +5,11 @@
 #ifndef BITCOIN_PRIMITIVES_SOLUTIONDATA_H
 #define BITCOIN_PRIMITIVES_SOLUTIONDATA_H
 
-#include "include/uint256.h"
+#include "crypto/uint256.h"
 #include "limits.h"
 #include "hash.h"
 #include "streams.h"
-#include "include/tinyformat.h"
+#include "tinyformat.h"
 
 inline std::string HexBytes(const unsigned char *buf, int size)
 {
