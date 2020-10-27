@@ -8,7 +8,7 @@ import (
 // Initialize verushash object once.
 var verusHash = verushash.NewVerushash()
 
-func VerusHash(serializedHeader []byte) {
+func VerusHash(serializedHeader []byte) []byte {
 	hash := make([]byte, 32)
 	ptrHash := uintptr(unsafe.Pointer(&hash[0]))
 	length := len(serializedHeader)
@@ -25,4 +25,5 @@ func VerusHash(serializedHeader []byte) {
 	} else {
 		verusHash.Verushash(string(serializedHeader), length, ptrHash)
 	}
+	return hash
 }
