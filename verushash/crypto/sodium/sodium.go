@@ -1,3 +1,3 @@
 // +build ignore
 
-package compat
+package sodium

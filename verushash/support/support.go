@@ -1,3 +1,3 @@
-package support
+// +build ignore
 
-import "C"
+package support

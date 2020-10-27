@@ -1,3 +1,3 @@
-package crypto
+// +build ignore
 
-import "C"
+package crypto
