@@ -1,1 +1,3 @@
 package crypto
+
+import "C"

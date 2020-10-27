@@ -1,1 +1,3 @@
 package support
+
+import "C"
