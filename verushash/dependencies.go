@@ -1,6 +1,6 @@
 // +build ignore
 
-package verushash
+package VH
 
 import (
 	_ "github.com/asherda/go-verushash/verushash/compat"
