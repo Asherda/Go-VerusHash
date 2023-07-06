@@ -32,6 +32,10 @@
 #include <stddef.h>
 #include <assert.h>
 
+#ifdef __APPLE__
+void __tls_init();
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
