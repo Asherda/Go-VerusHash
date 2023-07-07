@@ -1,4 +1,4 @@
-// (C) 2018 The Verus Developers
+// (C) 2023 The Verus Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -118,11 +118,11 @@ void CVerusHashV2::init()
     }
 }
 
-void CVerusHashV2::Hash(void *result, const void *data, size_t _len)
+void CVerusHashV2::Hash(void *result, const void *data, size_t len)
 {
     unsigned char buf[128];
     unsigned char *bufPtr = buf;
-    int len = _len, pos = 0, nextOffset = 64;
+    int pos = 0, nextOffset = 64;
     unsigned char *bufPtr2 = bufPtr + nextOffset;
     unsigned char *ptr = (unsigned char *)data;
 
@@ -150,13 +150,12 @@ void CVerusHashV2::Hash(void *result, const void *data, size_t _len)
     memcpy(result, bufPtr, 32);
 };
 
-CVerusHashV2 &CVerusHashV2::Write(const unsigned char *data, size_t _len)
+CVerusHashV2 &CVerusHashV2::Write(const unsigned char *data, size_t len)
 {
     unsigned char *tmp;
-    int len = _len;
 
     // digest up to 32 bytes at a time
-    for (int pos = 0; pos < len; )
+    for ( int pos = 0; pos < len; )
     {
         int room = 32 - curPos;
 

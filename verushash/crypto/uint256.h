@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
@@ -13,19 +13,13 @@
 #include <string>
 #include <vector>
 
-#ifdef _MSC_VER
-# define _ALIGN(x) __declspec(align(x))
-#else
-# define _ALIGN(x) __attribute__ ((aligned(x)))
-#endif
-
 /** Template base class for fixed-sized opaque blobs. */
 template<unsigned int BITS>
 class base_blob
 {
 protected:
     enum { WIDTH=BITS/8 };
-    uint8_t _ALIGN(4) data[WIDTH];
+    alignas(uint32_t) uint8_t data[WIDTH];
 public:
     base_blob()
     {
@@ -81,11 +75,6 @@ public:
         return sizeof(data);
     }
 
-    unsigned int GetSerializeSize(int nType, int nVersion) const
-    {
-        return sizeof(data);
-    }
-
     template<typename Stream>
     void Serialize(Stream& s) const
     {
@@ -97,18 +86,15 @@ public:
     {
         s.read((char*)data, sizeof(data));
     }
+};
 
-    template<typename Stream>
-    void Serialize(Stream& s, int nType, int nVersion) const
-    {
-        s.write((char*)data, sizeof(data));
-    }
-
-    template<typename Stream>
-    void Unserialize(Stream& s, int nType, int nVersion)
-    {
-        s.read((char*)data, sizeof(data));
-    }
+/** 88-bit opaque blob.
+ */
+class blob88 : public base_blob<88> {
+public:
+    blob88() {}
+    blob88(const base_blob<88>& b) : base_blob<88>(b) {}
+    explicit blob88(const std::vector<unsigned char>& vch) : base_blob<88>(vch) {}
 };
 
 /** 160-bit opaque blob.
@@ -172,5 +158,10 @@ inline uint256 uint256S(const std::string& str)
     rv.SetHex(str);
     return rv;
 }
+
+// Defined here so we have access to it in both primitives/transaction.h and protocol.h.
+/* The placeholder value used for the auth digest of pre-v5 transactions. */
+static const uint256 LEGACY_TX_AUTH_DIGEST =
+    uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 
 #endif // BITCOIN_UINT256_H

@@ -60,13 +60,18 @@ import "unsafe"
 import _ "runtime/cgo"
 import "sync"
 
+
 type _ unsafe.Pointer
+
+
 
 var Swig_escape_always_false bool
 var Swig_escape_val interface{}
 
+
 type _swig_fnptr *byte
 type _swig_memberptr *byte
+
 
 type _ sync.Mutex
 
@@ -93,23 +98,20 @@ func Cdata(arg1 uintptr, _swig_args ...interface{}) (_swig_ret []byte) {
 	swig_r = (uint64)(C._wrap_cdata_VH_4119d1d66918a908(C.swig_intgo(len(_swig_args)), C.uintptr_t(_swig_i_0), C.swig_intgo(_swig_i_1)))
 	var swig_r_1 []byte
 
-	{
-		type swigcdata struct {
-			size int
-			data uintptr
-		}
-		p := (*swigcdata)(unsafe.Pointer(uintptr(swig_r)))
-		if p == nil || p.data == 0 {
-			swig_r_1 = nil
-		} else {
-			b := make([]byte, p.size)
-			a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
-			copy(b, a)
-			Swig_free(p.data)
-			Swig_free(uintptr(unsafe.Pointer(p)))
-			swig_r_1 = b
-		}
-	}
+  {
+    type swigcdata struct { size int; data uintptr }
+    p := (*swigcdata)(unsafe.Pointer(uintptr(swig_r)))
+    if p == nil || p.data == 0 {
+      swig_r_1 = nil
+    } else {
+      b := make([]byte, p.size)
+      a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
+      copy(b, a)
+      Swig_free(p.data)
+      Swig_free(uintptr(unsafe.Pointer(p)))
+      swig_r_1 = b
+    }
+  }
 
 	return swig_r_1
 }
@@ -228,3 +230,5 @@ type Verushash interface {
 	Verushash_v2b1(arg2 string, arg3 int, arg4 uintptr)
 	Verushash_v2b2(arg2 string, arg3 uintptr)
 }
+
+

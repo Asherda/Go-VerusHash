@@ -22,9 +22,6 @@
 #include <utility>
 #include <vector>
 
-// Byte-vector that clears its contents before deletion.
-typedef std::vector<char, zero_after_free_allocator<char> > CSerializeData;
-
 template<typename Stream>
 class OverrideStream
 {

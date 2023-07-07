@@ -6,7 +6,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(verushash STATIC
         crypto/haraka.c
         crypto/haraka_portable.c
+        crypto/keccak.c
         crypto/uint256.cpp
+        crypto/sph_keccak.c
         crypto/utilstrencodings.cpp
         crypto/verus_hash.cpp
         crypto/verus_clhash.cpp

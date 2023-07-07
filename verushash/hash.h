@@ -9,10 +9,15 @@
 #include "crypto/ripemd160.h"
 #include "crypto/sha256.h"
 #include "crypto/verus_hash.h"
-#include "crypto/uint256.h"
-#include "crypto/sodium.h"
+#include "crypto/keccak.h"
+#include "crypto/sph_types.h"
+#include "crypto/sph_keccak.h"
 #include "prevector.h"
 #include "serialize.h"
+#include "crypto/uint256.h"
+
+#include "sodium.h"
+
 #include <vector>
 
 typedef uint256 ChainCode;
@@ -169,7 +174,7 @@ public:
 template <typename SERIALIZABLE>
 uint256 GetHash(const SERIALIZABLE &obj)
 {
-    CHashWriter hw(SER_GETHASH, 0);
+    CHashWriter hw(SER_GETHASH, 170009);
     hw << obj;
     return hw.GetHash();
 }
@@ -208,6 +213,54 @@ public:
 
     template<typename T>
     CHashWriterSHA256& operator<<(const T& obj) {
+        // Serialize to this stream
+        ::Serialize(*this, obj);
+        return (*this);
+    }
+};
+
+const unsigned char BLAKE2Bpersonal[crypto_generichash_blake2b_PERSONALBYTES]={'V','e','r','u','s','D','e','f','a','u','l','t','H','a','s','h'};
+
+/** A writer stream (for serialization) that computes a 256-bit BLAKE2b hash. */
+class CBLAKE2bWriter
+{
+private:
+    crypto_generichash_blake2b_state state;
+
+public:
+    int nType;
+    int nVersion;
+
+    CBLAKE2bWriter(int nTypeIn, 
+                   int nVersionIn,
+                   const unsigned char *personal=BLAKE2Bpersonal) : 
+                   nType(nTypeIn), nVersion(nVersionIn)
+    {
+        assert(crypto_generichash_blake2b_init_salt_personal(
+            &state,
+            NULL, 0, // No key.
+            32,
+            NULL,    // No salt.
+            personal) == 0);
+    }
+
+    int GetType() const { return nType; }
+    int GetVersion() const { return nVersion; }
+
+    CBLAKE2bWriter& write(const char *pch, size_t size) {
+        crypto_generichash_blake2b_update(&state, (const unsigned char*)pch, size);
+        return (*this);
+    }
+
+    // invalidates the object
+    uint256 GetHash() {
+        uint256 result;
+        crypto_generichash_blake2b_final(&state, (unsigned char*)&result, 32);
+        return result;
+    }
+
+    template<typename T>
+    CBLAKE2bWriter& operator<<(const T& obj) {
         // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
@@ -296,7 +349,7 @@ public:
     int nType;
     int nVersion;
 
-    CVerusHashV2bWriter(int nTypeIn, int nVersionIn, int solutionVersion=SOLUTION_VERUSHHASH_V2, uint64_t keysize=VERUSKEYSIZE) :
+    CVerusHashV2bWriter(int nTypeIn, int nVersionIn, int solutionVersion=SOLUTION_VERUSHHASH_V2, uint64_t keysize=VERUSKEYSIZE) : 
         nType(nTypeIn), nVersion(nVersionIn), state(solutionVersion) {}
 
     void Reset() { state.Reset(); }
@@ -324,52 +377,39 @@ public:
     }
 };
 
-const unsigned char BLAKE2Bpersonal[crypto_generichash_blake2b_PERSONALBYTES]={'V','e','r','u','s','D','e','f','a','u','l','t','H','a','s','h'};
-
-/** A writer stream (for serialization) that computes a 256-bit BLAKE2b hash. */
-class CBLAKE2bWriter
+/** A writer stream (for serialization) that computes a 256-bit Keccack256 hash */
+class CKeccack256Writer
 {
 private:
-    crypto_generichash_blake2b_state state;
+    sph_keccak256_context ctx_keccak;
 
 public:
-    int nType;
-    int nVersion;
-
-    CBLAKE2bWriter(int nTypeIn,
-                   int nVersionIn,
-                   const unsigned char *personal=BLAKE2Bpersonal) :
-                   nType(nTypeIn), nVersion(nVersionIn)
+  
+    CKeccack256Writer(int nTypeIn,  int nVersionIn)
     {
-        if (crypto_generichash_blake2b_init_salt_personal(
-            &state,
-            NULL, 0, // No key.
-            32,
-            NULL,    // No salt.
-            personal) != 0)
-        {
-            printf("%s: failed to initialize Blake2b state\n", __func__);
-            assert(false);
-        }
+        sph_keccak256_init(&ctx_keccak); 
     }
 
-    int GetType() const { return nType; }
-    int GetVersion() const { return nVersion; }
+    CKeccack256Writer() { sph_keccak256_init(&ctx_keccak); }
 
-    CBLAKE2bWriter& write(const char *pch, size_t size) {
-        crypto_generichash_blake2b_update(&state, (const unsigned char*)pch, size);
+    void Reset() { sph_keccak256_init(&ctx_keccak); }
+
+    CKeccack256Writer& write(const char *pch, size_t size) {
+        sph_keccak256 (&ctx_keccak, pch, size);
         return (*this);
     }
 
-    // invalidates the object
+    // invalidates the object for further writing
     uint256 GetHash() {
         uint256 result;
-        crypto_generichash_blake2b_final(&state, (unsigned char*)&result, 32);
+        sph_keccak256_close(&ctx_keccak, ((unsigned char*)&result));;
         return result;
     }
 
+    sph_keccak256_context &GetState() { return ctx_keccak; }
+
     template<typename T>
-    CBLAKE2bWriter& operator<<(const T& obj) {
+    CKeccack256Writer& operator<<(const T& obj) {
         // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
@@ -378,7 +418,7 @@ public:
 
 /** Compute the 256-bit hash of an object's serialization. */
 template<typename T>
-uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=0)
+uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=170009)
 {
     CHashWriter ss(nType, nVersion);
     ss << obj;
@@ -387,7 +427,7 @@ uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=0)
 
 /** Compute the 256-bit Verus hash of an object's serialization. */
 template<typename T>
-uint256 SerializeVerusHash(const T& obj, int nType=SER_GETHASH, int nVersion=0)
+uint256 SerializeVerusHash(const T& obj, int nType=SER_GETHASH, int nVersion=170009)
 {
     CVerusHashWriter ss(nType, nVersion);
     ss << obj;
@@ -396,7 +436,7 @@ uint256 SerializeVerusHash(const T& obj, int nType=SER_GETHASH, int nVersion=0)
 
 /** Compute the 256-bit Verus hash of an object's serialization. */
 template<typename T>
-uint256 SerializeVerusHashV2(const T& obj, int nType=SER_GETHASH, int nVersion=0)
+uint256 SerializeVerusHashV2(const T& obj, int nType=SER_GETHASH, int nVersion=170009)
 {
     CVerusHashV2Writer ss(nType, nVersion);
     ss << obj;
@@ -407,7 +447,7 @@ uint256 SerializeVerusHashV2(const T& obj, int nType=SER_GETHASH, int nVersion=0
  *  a carryless multiply-based hash as fill for the unused space.
  */
 template<typename T>
-uint256 SerializeVerusHashV2b(const T& obj, int solutionVersion=SOLUTION_VERUSHHASH_V2, int nType=SER_GETHASH, int nVersion=0)
+uint256 SerializeVerusHashV2b(const T& obj, int solutionVersion=SOLUTION_VERUSHHASH_V2, int nType=SER_GETHASH, int nVersion=170009)
 {
     CVerusHashV2bWriter ss(nType, nVersion, solutionVersion);
     ss << obj;

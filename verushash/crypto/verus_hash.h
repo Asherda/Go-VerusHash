@@ -84,7 +84,7 @@ class CVerusHashV2
 
         verusclhasher vclh;
 
-        CVerusHashV2(int solutionVerusion=SOLUTION_VERUSHHASH_V2) : vclh(VERUSKEYSIZE, solutionVerusion) {
+        CVerusHashV2(int solutionVersion=SOLUTION_VERUSHHASH_V2) : vclh(VERUSKEYSIZE, solutionVersion) {
             // we must have allocated key space, or can't run
             if (!verusclhasher_key.get())
             {
@@ -121,7 +121,7 @@ class CVerusHashV2
             int left = 32 - pos;
             do
             {
-                int len = left > (int)sizeof(T) ? sizeof(T) : left;
+                int len = left > sizeof(T) ? sizeof(T) : left;
                 std::memcpy(curBuf + 32 + pos, data, len);
                 pos += len;
                 left -= len;

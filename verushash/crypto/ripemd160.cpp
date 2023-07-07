@@ -3,6 +3,7 @@
 // file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #include "ripemd160.h"
+
 #include "common.h"
 
 #include <string.h>

@@ -1,6 +1,7 @@
 // Copyright (c) 2014 The Bitcoin Core developers
+// Copyright (c) 2016-2023 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #ifndef BITCOIN_CRYPTO_COMMON_H
 #define BITCOIN_CRYPTO_COMMON_H
@@ -11,17 +12,15 @@
 
 #include <stdint.h>
 #include <assert.h>
+// #include <string.h>
 
-//#include "sodium.h"
+// #include "sodium.h"
+
 #ifdef WIN32
 #include "compat/endian.h"
 #else
 #include <endian.h>
 #endif
-
-//#if defined(NDEBUG)
-//# error "Bitcoin cannot be compiled without assertions."
-//#endif
 
 uint16_t static inline ReadLE16(const unsigned char* ptr)
 {
@@ -110,5 +109,6 @@ void static inline WriteBE64(unsigned char* ptr, uint64_t x)
 
     return 0;
 }*/
+
 
 #endif // BITCOIN_CRYPTO_COMMON_H

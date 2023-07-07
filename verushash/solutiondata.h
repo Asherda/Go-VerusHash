@@ -1,4 +1,4 @@
-// Copyright (c) 2018, 2019, 2020 Michael Toutonghi
+// Copyright (c) 2018 Michael Toutonghi
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,16 +11,6 @@
 #include "streams.h"
 #include "tinyformat.h"
 
-inline std::string HexBytes(const unsigned char *buf, int size)
-{
-    std::stringstream ss;
-    for (int l = 0; l < size; l++)
-    {
-        ss << strprintf("%02x", *(buf + l));
-    }
-    return ss.str();
-}
-
 class CPBaaSBlockHeader;
 
 class CActivationHeight
@@ -29,7 +19,7 @@ class CActivationHeight
         enum {
             MAX_HEIGHT = INT_MAX,
             DEFAULT_UPGRADE_HEIGHT = MAX_HEIGHT,
-            NUM_VERSIONS = 7,   // NEVER ADD A NEW VERSION WITHOUT UPDATING THE ARRAY BELOW WITH ALL ENTRIES PRESENT
+            NUM_VERSIONS = 8,   // NEVER ADD A NEW VERSION WITHOUT UPDATING THE ARRAY BELOW WITH ALL ENTRIES PRESENT
             SOLUTION_VERUSV1 = 0,
             SOLUTION_VERUSV2 = 1,
             SOLUTION_VERUSV3 = 2,
@@ -37,6 +27,7 @@ class CActivationHeight
             SOLUTION_VERUSV5 = 4,
             SOLUTION_VERUSV5_1 = 5,
             SOLUTION_VERUSV6 = 6,
+            SOLUTION_VERUSV7 = 7,
             ACTIVATE_VERUSHASH2 = SOLUTION_VERUSV2,
             ACTIVATE_EXTENDEDSOLUTION = SOLUTION_VERUSV3,
             ACTIVATE_IDENTITY = SOLUTION_VERUSV4,
@@ -46,11 +37,12 @@ class CActivationHeight
             ACTIVATE_VERUSHASH2_2 = SOLUTION_VERUSV5,
             ACTIVATE_PBAAS_HEADER = SOLUTION_VERUSV5_1,
             ACTIVATE_STAKEHEADER = SOLUTION_VERUSV6,
-            ACTIVATE_PBAAS = SOLUTION_VERUSV6
+            ACTIVATE_VERUSVAULT = SOLUTION_VERUSV6,
+            ACTIVATE_PBAAS = SOLUTION_VERUSV7
         };
         bool active;
         int32_t heights[NUM_VERSIONS];
-        CActivationHeight() : heights{0, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT}, active(true) {}
+        CActivationHeight() : heights{0, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT, DEFAULT_UPGRADE_HEIGHT}, active(true) {}
 
         void SetActivationHeight(int32_t version, int32_t height)
         {
@@ -86,6 +78,41 @@ class CActivationHeight
         }
 };
 
+class CBlockHeader;
+
+class CPBaaSPreHeader
+{
+public:
+    uint256 hashPrevBlock;
+    uint256 hashMerkleRoot;
+    uint256 hashFinalSaplingRoot;
+    uint256 nNonce;
+    uint32_t nBits;
+    uint256 hashPrevMMRRoot;
+    uint256 hashBlockMMRRoot;
+
+    CPBaaSPreHeader() : nBits(0) {}
+    CPBaaSPreHeader(const uint256 &prevBlock, const uint256 &merkleRoot, const uint256 &finalSaplingRoot,const uint256 &nonce, uint32_t compactTarget,
+                    const uint256 &PrevMMRRoot, const uint256 &TransactionMMRRoot) :
+                    hashPrevBlock(prevBlock), hashMerkleRoot(merkleRoot), hashFinalSaplingRoot(finalSaplingRoot), nNonce(nonce), nBits(compactTarget),
+                    hashPrevMMRRoot(PrevMMRRoot), hashBlockMMRRoot(TransactionMMRRoot) {}
+
+    CPBaaSPreHeader(const CBlockHeader &bh);
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action) {
+        READWRITE(hashPrevBlock);
+        READWRITE(hashMerkleRoot);
+        READWRITE(hashFinalSaplingRoot);
+        READWRITE(nNonce);
+        READWRITE(nBits);
+        READWRITE(hashPrevMMRRoot);
+        READWRITE(hashBlockMMRRoot);
+    }
+};
+
 /** For POS blocks, the nNonce of a block header holds the entropy source for the POS contest
  * in the latest VerusHash protocol
  * */
@@ -115,40 +142,6 @@ public:
     }
 };
 
-class CBlockHeader;
-
-class CPBaaSPreHeader
-{
-public:
-    uint256 hashPrevBlock;
-    uint256 hashMerkleRoot;
-    uint256 hashFinalSaplingRoot;
-    uint256 nNonce;
-    uint32_t nBits;
-    uint256 hashPrevMMRRoot;
-    uint256 hashBlockMMRRoot;
-
-    CPBaaSPreHeader() : nBits(0) {}
-    CPBaaSPreHeader(const uint256 &prevBlock, const uint256 &merkleRoot, const uint256 &finalSaplingRoot,const uint256 &nonce, uint32_t compactTarget,
-                    const uint256 &PrevMMRRoot, const uint256 &TransactionMMRRoot) : 
-                    hashPrevBlock(prevBlock), hashMerkleRoot(merkleRoot), hashFinalSaplingRoot(finalSaplingRoot), nNonce(nonce), nBits(compactTarget),
-                    hashPrevMMRRoot(PrevMMRRoot), hashBlockMMRRoot(TransactionMMRRoot) {}
-
-    CPBaaSPreHeader(const CBlockHeader &bh);
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(hashPrevBlock);
-        READWRITE(hashMerkleRoot);
-        READWRITE(hashFinalSaplingRoot);
-        READWRITE(nNonce);
-        READWRITE(nBits);
-        READWRITE(hashPrevMMRRoot);
-        READWRITE(hashBlockMMRRoot);
-    }
-};
 
 // this class provides a minimal and compact hash pair and identity for a merge mined PBaaS header
 class CPBaaSBlockHeader
@@ -169,27 +162,28 @@ public:
 
     CPBaaSBlockHeader(const uint160 &cID, const uint256 &hashPre) : chainID(cID), hashPreHeader(hashPre) { }
 
-    CPBaaSBlockHeader(const char *pbegin, const char *pend) 
+    CPBaaSBlockHeader(const char *pbegin, const char *pend)
     {
-        CDataStream s = CDataStream(pbegin, pend, SER_NETWORK, 0);
+        CDataStream s = CDataStream(pbegin, pend, SER_NETWORK, 170009);
         s >> *this;
     }
 
     CPBaaSBlockHeader(const uint160 &cID, const CPBaaSPreHeader &pbph);
 
-    CPBaaSBlockHeader(const uint160 &cID, 
-                        const uint256 &hashPrevBlock, 
-                        const uint256 &hashMerkleRoot, 
-                        const uint256 &hashFinalSaplingRoot, 
-                        const uint256 &nNonce, 
-                        uint32_t nBits, 
+    CPBaaSBlockHeader(const uint160 &cID,
+                        const uint256 &hashPrevBlock,
+                        const uint256 &hashMerkleRoot,
+                        const uint256 &hashFinalSaplingRoot,
+                        const uint256 &nNonce,
+                        uint32_t nBits,
                         const uint256 &hashPrevMMRRoot,
                         const uint256 &hashBlockMMRRoot)
     {
         CPBaaSPreHeader pbph(hashPrevBlock, hashMerkleRoot, hashFinalSaplingRoot, nNonce, nBits, hashPrevMMRRoot, hashBlockMMRRoot);
 
-        CHashWriter hw(SER_GETHASH, 0);
+        CHashWriter hw(SER_GETHASH, 170009);
         hw << pbph;
+
         hashPreHeader = hw.GetHash();
     }
 
@@ -240,12 +234,12 @@ class CPBaaSSolutionDescriptor
         // this is additional data for the block specific header. this is also cleared out
         // when making a canonical header, and the values here are hashed into the pre-header hash
         uint256 hashPrevMMRRoot;                                       // prior block's Merkle Mountain Range
-        uint256 hashBlockMMRRoot;                                // this is the root MMR for transactions in this block
+        uint256 hashBlockMMRRoot;                                      // this is the root MMR for transactions in this block
         // end block specific data
 
         CPBaaSSolutionDescriptor() : version(0), descrBits(0), numPBaaSHeaders(0), extraDataSize(0) {}
 
-        CPBaaSSolutionDescriptor(uint32_t ver, uint8_t descr, uint8_t numSubHeaders, uint16_t sSize, uint256 PrevMMRRoot, uint256 TransactionMMRRoot) : 
+        CPBaaSSolutionDescriptor(uint32_t ver, uint8_t descr, uint8_t numSubHeaders, uint16_t sSize, uint256 PrevMMRRoot, uint256 TransactionMMRRoot) :
             version(ver), descrBits(descr), numPBaaSHeaders(numSubHeaders), extraDataSize(sSize), hashPrevMMRRoot(PrevMMRRoot), hashBlockMMRRoot(TransactionMMRRoot)
         {}
 
@@ -373,7 +367,7 @@ class CConstVerusSolutionVector
         }
 
         // returns 0 if not PBaaS, 1 if PBaaS PoW, -1 if PBaaS PoS
-        static int32_t IsPBaaS(const std::vector<unsigned char> &vch)
+        static int32_t IsAdvancedSolution(const std::vector<unsigned char> &vch)
         {
             if (Version(vch) >= CActivationHeight::ACTIVATE_PBAAS)
             {
@@ -403,11 +397,11 @@ class CConstVerusSolutionVector
             return GetDescriptor(vch).numPBaaSHeaders * sizeof(CPBaaSBlockHeader) + OVERHEAD_SIZE;
         }
 
-        static uint32_t ExtraDataLen(const std::vector<unsigned char> &vch)
+        static uint32_t ExtraDataLen(const std::vector<unsigned char> &vch, bool allowPBaaSHeader=false)
         {
             int len;
 
-            if (Version(vch) < CActivationHeight::ACTIVATE_PBAAS)
+            if (!(Version(vch) >= CActivationHeight::ACTIVATE_PBAAS || (allowPBaaSHeader && Version(vch) >= CActivationHeight::ACTIVATE_PBAAS_HEADER)))
             {
                 len = 0;
             }
@@ -433,6 +427,7 @@ class CConstVerusSolutionVector
             }
         }
 };
+
 
 class CVerusSolutionVector
 {
@@ -472,7 +467,7 @@ class CVerusSolutionVector
         void SetDescriptor(CPBaaSSolutionDescriptor d)
         {
             solutionTools.SetDescriptor(vch, d);
-        }    
+        }
 
         uint32_t DescriptorBits()
         {
@@ -485,9 +480,9 @@ class CVerusSolutionVector
         }
 
         // returns 0 if not PBaaS, 1 if PBaaS PoW, -1 if PBaaS PoS
-        int32_t IsPBaaS()
+        int32_t IsAdvancedSolution()
         {
-            return solutionTools.IsPBaaS(vch);
+            return solutionTools.IsAdvancedSolution(vch);
         }
 
         // returns 0 if not PBaaS, 1 if PBaaS PoW, -1 if PBaaS PoS
@@ -595,6 +590,13 @@ class CVerusSolutionVector
         }
 };
 
+/** Nodes collect new transactions into a block, hash them into a hash tree,
+ * and scan through nonce values to make the block's hash satisfy proof-of-work
+ * requirements.  When they solve the proof-of-work, they broadcast the block
+ * to everyone and the block is added to the block chain.  The first transaction
+ * in the block is a special one that creates a new coin owned by the creator
+ * of the block.
+ */
 class CBlockHeader
 {
 public:
@@ -653,16 +655,6 @@ public:
 
     uint256 GetVerusV2Hash() const;
 
-    // returns 0 if not PBaaS, 1 if PBaaS PoW, -1 if PBaaS PoS
-    int32_t IsPBaaS() const
-    {
-        if (nVersion == VERUS_V2)
-        {
-            return CConstVerusSolutionVector::IsPBaaS(nSolution);
-        }
-        return 0;
-    }
-
     int32_t HasPBaaSHeader() const
     {
         if (nVersion == VERUS_V2)
@@ -673,9 +665,10 @@ public:
     }
 
     // return a vector of bytes that contains the internal data for this solution vector
-    void GetExtraData(std::vector<unsigned char> &dataVec)
+    void GetExtraData(std::vector<unsigned char> &dataVec) const
     {
-        CVerusSolutionVector(nSolution).GetExtraData(dataVec);
+        std::vector<unsigned char> writeSolution = nSolution;
+        CVerusSolutionVector(writeSolution).GetExtraData(dataVec);
     }
 
     // set the extra data with a pointer to bytes and length
@@ -722,11 +715,11 @@ public:
     bool SavePBaaSHeader(CPBaaSBlockHeader &pbh, uint32_t idx)
     {
         CPBaaSBlockHeader pbbh = CPBaaSBlockHeader();
-        int32_t ix;
+        int ix;
 
         CVerusSolutionVector sv = CVerusSolutionVector(nSolution);
 
-        if (sv.HasPBaaSHeader() && !pbh.IsNull() && idx < sv.GetNumPBaaSHeaders() && ((((ix = GetPBaaSHeader(pbbh, pbh.chainID)) == -1) || (uint32_t)ix == idx)))
+        if (sv.HasPBaaSHeader() && !pbh.IsNull() && idx < sv.GetNumPBaaSHeaders() && (((ix = GetPBaaSHeader(pbbh, pbh.chainID)) == -1) || ix == idx))
         {
             sv.SetPBaaSHeader(pbh, idx);
             return true;
@@ -737,12 +730,12 @@ public:
     bool UpdatePBaaSHeader(const CPBaaSBlockHeader &pbh)
     {
         CPBaaSBlockHeader pbbh = CPBaaSBlockHeader();
-        int32_t ix;
+        uint32_t idx;
 
         // what we are updating, must be present
-        if (!pbh.IsNull() && (ix = GetPBaaSHeader(pbbh, pbh.chainID)) != -1)
+        if (!pbh.IsNull() && (idx = GetPBaaSHeader(pbbh, pbh.chainID)) != -1)
         {
-            CVerusSolutionVector(nSolution).SetPBaaSHeader(pbh, ix);
+            CVerusSolutionVector(nSolution).SetPBaaSHeader(pbh, idx);
             return true;
         }
         return false;
@@ -756,12 +749,12 @@ public:
         {
             CPBaaSBlockHeader pbh;
             // if we weren't last, move the one that was last to our prior space
-            if (idx < (uint32_t)(descr.numPBaaSHeaders - 1))
+            if (idx < (descr.numPBaaSHeaders - 1))
             {
                 sv.GetPBaaSHeader(pbh, descr.numPBaaSHeaders - 1);
             }
             sv.SetPBaaSHeader(pbh, idx);
-            
+
             descr.numPBaaSHeaders--;
             sv.SetDescriptor(descr);
         }
@@ -786,8 +779,9 @@ public:
     // this confirms that the current header's data matches what would be expected from its preheader hash in the
     // solution
     bool CheckNonCanonicalData() const;
-    bool CheckNonCanonicalData(uint160 &cID) const;
+    bool CheckNonCanonicalData(const uint160 &cID) const;
 
+   
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
@@ -804,6 +798,9 @@ public:
         }
         return nBits;
     }
+
+
 };
+
 
 #endif // BITCOIN_PRIMITIVES_SOLUTIONDATA_H
