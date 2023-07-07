@@ -1,7 +1,7 @@
 package verushash
 
 import (
-	"github.com/asherda/go-verushash/verushash"
+	"github.com/hashpool/go-verushash/verushash"
 	"unsafe"
 )
 

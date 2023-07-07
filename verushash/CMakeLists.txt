@@ -76,3 +76,4 @@ message("-- CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 message("-- LIBS: ${LIBS}")
 
 target_link_libraries (verushash ${LIBS})
+

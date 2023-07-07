@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	VH "github.com/asherda/go-verushash/verushash"
+	VH "github.com/hashpool/go-verushash/verushash"
 	"unsafe"
 )
 var verusHash     = VH.NewVerushash()
